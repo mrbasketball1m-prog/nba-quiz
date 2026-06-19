@@ -10,185 +10,110 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --court:#0A0A0B;
-    --panel:#141416;
-    --panel-2:#1C1C1F;
-    --ball:#EE6730;
-    --led:#FFB627;
-    --line:rgba(255,255,255,0.12);
-    --white:#F5F5F4;
-    --muted:#8A8A8F;
-    --green:#2ECC71;
-    --red:#E74C3C;
+    --court:#0A0A0B; --panel:#141416; --panel-2:#1C1C1F;
+    --ball:#EE6730; --led:#FFB627; --line:rgba(255,255,255,0.12);
+    --white:#F5F5F4; --muted:#8A8A8F; --green:#2ECC71; --red:#E74C3C;
   }
-
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--court);color:var(--white);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;position:relative;}
+  .court-lines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6;}
+  .court-lines::before{content:"";position:absolute;top:50%;left:50%;width:240px;height:240px;border:2px solid var(--line);border-radius:50%;transform:translate(-50%,-50%);}
+  .court-lines::after{content:"";position:absolute;top:0;left:50%;width:2px;height:100%;background:var(--line);transform:translateX(-50%);}
+  .wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:20px 18px 32px;min-height:100vh;display:flex;flex-direction:column;}
 
-  body{
-    background:var(--court);
-    color:var(--white);
-    font-family:'Inter',system-ui,sans-serif;
-    min-height:100vh;
-    overflow-x:hidden;
-    position:relative;
-  }
-
-  /* разметка корта на фоне */
-  .court-lines{
-    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6;
-  }
-  .court-lines::before{
-    content:"";position:absolute;top:50%;left:50%;
-    width:240px;height:240px;border:2px solid var(--line);border-radius:50%;
-    transform:translate(-50%,-50%);
-  }
-  .court-lines::after{
-    content:"";position:absolute;top:0;left:50%;
-    width:2px;height:100%;background:var(--line);transform:translateX(-50%);
-  }
-
-  .wrap{
-    position:relative;z-index:1;
-    max-width:520px;margin:0 auto;
-    padding:20px 18px 32px;
-    min-height:100vh;display:flex;flex-direction:column;
-  }
-
-  /* ===== ТАБЛО ===== */
-  .scoreboard{
-    background:var(--panel);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:14px;
-    padding:14px 18px;
-    display:flex;align-items:center;justify-content:space-between;
-    box-shadow:0 8px 30px rgba(0,0,0,.5);
-  }
+  /* ТАБЛО */
+  .scoreboard{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 30px rgba(0,0,0,.5);}
   .sb-block{text-align:center;flex:1;}
-  .sb-label{
-    font-family:'Inter';font-size:10px;font-weight:700;letter-spacing:2px;
-    color:var(--muted);text-transform:uppercase;margin-bottom:4px;
-  }
-  .sb-value{
-    font-family:'Orbitron';font-weight:900;font-size:32px;line-height:1;
-    color:var(--led);
-    text-shadow:0 0 12px rgba(255,182,39,.55);
-  }
+  .sb-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+  .sb-value{font-family:'Orbitron';font-weight:900;font-size:28px;line-height:1;color:var(--led);text-shadow:0 0 12px rgba(255,182,39,.55);}
   .sb-divider{width:1px;height:38px;background:rgba(255,255,255,.1);}
 
-  /* ===== ЭКРАНЫ ===== */
   .screen{display:none;flex:1;flex-direction:column;}
   .screen.active{display:flex;animation:fade .35s ease;}
   @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 
-  /* старт */
   #start{justify-content:center;align-items:center;text-align:center;gap:6px;}
-  .ball{
-    font-size:64px;margin-bottom:6px;
-    animation:bounce 1.6s ease-in-out infinite;
-  }
+  .ball{font-size:64px;margin-bottom:6px;animation:bounce 1.6s ease-in-out infinite;}
   @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
-  .title{
-    font-family:'Anton';font-size:46px;line-height:.95;text-transform:uppercase;
-    letter-spacing:1px;
-  }
+  .title{font-family:'Anton';font-size:46px;line-height:.95;text-transform:uppercase;letter-spacing:1px;}
   .title span{color:var(--ball);}
-  .subtitle{color:var(--muted);font-size:15px;max-width:280px;margin:8px 0 28px;}
+  .subtitle{color:var(--muted);font-size:15px;max-width:300px;margin:8px 0 28px;}
 
-  .btn{
-    font-family:'Anton';font-size:20px;letter-spacing:1px;text-transform:uppercase;
-    background:var(--ball);color:#fff;border:none;border-radius:12px;
-    padding:16px 40px;cursor:pointer;width:100%;max-width:340px;
-    transition:transform .08s ease, filter .15s ease;
-    box-shadow:0 6px 24px rgba(238,103,48,.4);
-  }
+  .btn{font-family:'Anton';font-size:20px;letter-spacing:1px;text-transform:uppercase;background:var(--ball);color:#fff;border:none;border-radius:12px;padding:16px 40px;cursor:pointer;width:100%;max-width:340px;transition:transform .08s ease, filter .15s ease;box-shadow:0 6px 24px rgba(238,103,48,.4);}
   .btn:active{transform:scale(.97);}
   .btn:focus-visible{outline:3px solid var(--led);outline-offset:3px;}
-  .btn.ghost{background:var(--panel-2);box-shadow:none;border:1px solid rgba(255,255,255,.1);}
 
-  /* игра */
-  #game{padding-top:18px;gap:18px;}
+  #game{padding-top:18px;gap:16px;}
   .progress{display:flex;gap:6px;}
   .progress .pip{flex:1;height:5px;border-radius:3px;background:var(--panel-2);transition:background .3s;}
   .progress .pip.done{background:var(--ball);}
   .progress .pip.current{background:var(--led);}
 
+  .qrow{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .qmeta{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+  .tier-badge{font-family:'Orbitron';font-weight:700;font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:8px;background:var(--panel-2);color:var(--led);border:1px solid rgba(255,182,39,.3);white-space:nowrap;}
   .question{font-family:'Anton';font-size:26px;line-height:1.15;}
 
-  .answers{display:flex;flex-direction:column;gap:11px;margin-top:4px;}
-  .answer{
-    background:var(--panel);border:1.5px solid rgba(255,255,255,.08);
-    border-radius:12px;padding:16px 18px;text-align:left;cursor:pointer;
-    font-family:'Inter';font-size:16px;font-weight:600;color:var(--white);
-    display:flex;align-items:center;gap:14px;
-    transition:border-color .15s, background .15s, transform .08s;
-  }
+  .answers{display:flex;flex-direction:column;gap:11px;margin-top:2px;}
+  .answer{background:var(--panel);border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:16px 18px;text-align:left;cursor:pointer;font-family:'Inter';font-size:16px;font-weight:600;color:var(--white);display:flex;align-items:center;gap:14px;transition:border-color .15s, background .15s, transform .08s;}
   .answer:active{transform:scale(.99);}
   .answer:focus-visible{outline:3px solid var(--led);outline-offset:2px;}
-  .answer .key{
-    width:28px;height:28px;flex:0 0 28px;border-radius:7px;background:var(--panel-2);
-    display:grid;place-items:center;font-family:'Orbitron';font-weight:700;font-size:13px;color:var(--muted);
-  }
+  .answer .key{width:28px;height:28px;flex:0 0 28px;border-radius:7px;background:var(--panel-2);display:grid;place-items:center;font-family:'Orbitron';font-weight:700;font-size:13px;color:var(--muted);}
   .answer.correct{border-color:var(--green);background:rgba(46,204,113,.12);}
   .answer.correct .key{background:var(--green);color:#fff;}
   .answer.wrong{border-color:var(--red);background:rgba(231,76,60,.12);}
   .answer.wrong .key{background:var(--red);color:#fff;}
   .answers.locked .answer{cursor:default;}
+  .xp-pop{position:fixed;left:50%;top:38%;transform:translateX(-50%);font-family:'Orbitron';font-weight:900;font-size:34px;color:var(--led);text-shadow:0 0 16px rgba(255,182,39,.6);pointer-events:none;opacity:0;}
+  .xp-pop.show{animation:pop 1s ease forwards;}
+  @keyframes pop{0%{opacity:0;transform:translate(-50%,10px);}25%{opacity:1;transform:translate(-50%,-10px);}100%{opacity:0;transform:translate(-50%,-40px);}}
 
-  /* финал */
   #result{justify-content:center;align-items:center;text-align:center;gap:4px;}
   .verdict-emoji{font-size:60px;margin-bottom:10px;}
-  .final-score{
-    font-family:'Orbitron';font-weight:900;font-size:64px;color:var(--led);
-    text-shadow:0 0 22px rgba(255,182,39,.5);line-height:1;
-  }
-  .final-score small{font-size:26px;color:var(--muted);text-shadow:none;}
+  .final-score{font-family:'Orbitron';font-weight:900;font-size:60px;color:var(--led);text-shadow:0 0 22px rgba(255,182,39,.5);line-height:1;}
+  .final-score small{font-size:24px;color:var(--muted);text-shadow:none;}
+  .final-xp{font-family:'Orbitron';font-weight:700;font-size:18px;color:var(--ball);margin-top:6px;}
   .verdict{font-family:'Anton';font-size:30px;text-transform:uppercase;margin:14px 0 6px;}
   .verdict-sub{color:var(--muted);font-size:15px;max-width:300px;margin-bottom:28px;}
 
-  @media (prefers-reduced-motion: reduce){
-    *{animation:none!important;transition:none!important;}
-  }
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
 </style>
 </head>
 <body>
 <div class="court-lines"></div>
+<div class="xp-pop" id="xpPop"></div>
 
 <div class="wrap">
 
-  <!-- ТАБЛО (видно на игре и финале) -->
   <div class="scoreboard" id="scoreboard" style="display:none;">
-    <div class="sb-block">
-      <div class="sb-label">Счёт</div>
-      <div class="sb-value" id="sbScore">00</div>
-    </div>
+    <div class="sb-block"><div class="sb-label">Счёт</div><div class="sb-value" id="sbScore">0</div></div>
     <div class="sb-divider"></div>
-    <div class="sb-block">
-      <div class="sb-label">Вопрос</div>
-      <div class="sb-value" id="sbQ">0<span style="color:var(--muted);text-shadow:none;">/8</span></div>
-    </div>
+    <div class="sb-block"><div class="sb-label">XP</div><div class="sb-value" id="sbXp">0</div></div>
+    <div class="sb-divider"></div>
+    <div class="sb-block"><div class="sb-label">Вопрос</div><div class="sb-value" id="sbQ">0</div></div>
   </div>
 
-  <!-- СТАРТ -->
   <section class="screen active" id="start">
     <div class="ball">🏀</div>
     <h1 class="title">NBA<br><span>QUIZ</span></h1>
-    <p class="subtitle">8 вопросов о лиге, легендах и рекордах. Проверь, насколько хорошо ты знаешь баскетбол.</p>
+    <p class="subtitle">Отвечай правильно подряд — поднимай уровень, бери сложные вопросы и больше XP. Дойди до Зала Славы.</p>
     <button class="btn" id="startBtn">Начать игру</button>
   </section>
 
-  <!-- ИГРА -->
   <section class="screen" id="game">
     <div class="progress" id="progress"></div>
-    <div class="qmeta" id="qmeta">Вопрос 1 из 8</div>
+    <div class="qrow">
+      <div class="qmeta" id="qmeta">Вопрос 1</div>
+      <div class="tier-badge" id="tierBadge">НОВИЧОК</div>
+    </div>
     <h2 class="question" id="questionText">—</h2>
     <div class="answers" id="answers"></div>
   </section>
 
-  <!-- РЕЗУЛЬТАТ -->
   <section class="screen" id="result">
     <div class="verdict-emoji" id="verdictEmoji">🏆</div>
     <div class="final-score"><span id="finalScore">0</span><small>/8</small></div>
+    <div class="final-xp" id="finalXp">+0 XP</div>
     <div class="verdict" id="verdict">—</div>
     <p class="verdict-sub" id="verdictSub">—</p>
     <button class="btn" id="restartBtn">Сыграть снова</button>
@@ -197,181 +122,164 @@
 </div>
 
 <script>
-  // ---- Telegram WebApp ----
   const tg = window.Telegram ? window.Telegram.WebApp : null;
   if (tg) { tg.ready(); tg.expand(); }
-
-  function haptic(type){
-    if (!tg || !tg.HapticFeedback) return;
-    if (type === 'ok') tg.HapticFeedback.notificationOccurred('success');
-    else if (type === 'no') tg.HapticFeedback.notificationOccurred('error');
+  function haptic(t){
+    if(!tg||!tg.HapticFeedback) return;
+    if(t==='ok') tg.HapticFeedback.notificationOccurred('success');
+    else if(t==='no') tg.HapticFeedback.notificationOccurred('error');
     else tg.HapticFeedback.impactOccurred('light');
   }
 
-  // ---- Данные ----
+  // d: 0 = лёгкий, 1 = средний, 2 = сложный (хардкор)
   const questions = [
-    {
-      q: "Кто лидер по набранным очкам за всю историю NBA?",
-      options: ["Карим Абдул-Джаббар", "Леброн Джеймс", "Коби Брайант", "Майкл Джордан"],
-      correct: 1
-    },
-    {
-      q: "Сколько минут длится одна четверть в NBA?",
-      options: ["10 минут", "12 минут", "15 минут", "20 минут"],
-      correct: 1
-    },
-    {
-      q: "Сколько очков набрал Уилт Чемберлен в рекордном матче 1962 года?",
-      options: ["81", "92", "100", "73"],
-      correct: 2
-    },
-    {
-      q: "За какую команду Майкл Джордан провёл большую часть карьеры?",
-      options: ["Лос-Анджелес Лейкерс", "Бостон Селтикс", "Чикаго Буллз", "Майами Хит"],
-      correct: 2
-    },
-    {
-      q: "Сколько чемпионских титулов выиграл Майкл Джордан?",
-      options: ["3", "5", "6", "8"],
-      correct: 2
-    },
-    {
-      q: "Кого из игроков прозвали «Greek Freak»?",
-      options: ["Лука Дончич", "Яннис Адетокунбо", "Никола Йокич", "Джоэл Эмбиид"],
-      correct: 1
-    },
-    {
-      q: "Сколько очков приносит реализованный штрафной бросок?",
-      options: ["1", "2", "3", "0.5"],
-      correct: 0
-    },
-    {
-      q: "Какая команда установила рекорд 73 победы за регулярку (сезон 2015-16)?",
-      options: ["Чикаго Буллз", "Голден Стэйт Уорриорз", "Сан-Антонио Спёрс", "Лос-Анджелес Лейкерс"],
-      correct: 1
-    }
+    {q:"Сколько игроков одной команды на площадке одновременно?",options:["4","5","6","7"],correct:1,d:0},
+    {q:"Сколько минут длится одна четверть в NBA?",options:["10","12","15","20"],correct:1,d:0},
+    {q:"Сколько очков приносит реализованный штрафной бросок?",options:["1","2","3","0.5"],correct:0,d:0},
+    {q:"За какую команду Майкл Джордан провёл большую часть карьеры?",options:["Лейкерс","Селтикс","Чикаго Буллз","Майами Хит"],correct:2,d:0},
+    {q:"Кто лидер по набранным очкам за всю историю NBA?",options:["Карим Абдул-Джаббар","Леброн Джеймс","Коби Брайант","Майкл Джордан"],correct:1,d:0},
+    {q:"Сколько очков приносит бросок из-за трёхочковой дуги?",options:["1","2","3","4"],correct:2,d:0},
+    {q:"Сколько чемпионских титулов выиграл Майкл Джордан?",options:["3","5","6","8"],correct:2,d:1},
+    {q:"Кого из игроков прозвали «Greek Freak»?",options:["Лука Дончич","Яннис Адетокунбо","Никола Йокич","Джоэл Эмбиид"],correct:1,d:1},
+    {q:"Какая команда установила рекорд 73 победы за регулярку (2015-16)?",options:["Чикаго Буллз","Голден Стэйт Уорриорз","Сан-Антонио Спёрс","Лейкерс"],correct:1,d:1},
+    {q:"Сколько очков набрал Уилт Чемберлен в рекордном матче 1962 года?",options:["81","92","100","73"],correct:2,d:1},
+    {q:"Кто стал MVP финала 2016, отыгравшись со счёта 1-3 в серии?",options:["Кайри Ирвинг","Стефен Карри","Леброн Джеймс","Кевин Дюрант"],correct:2,d:1},
+    {q:"Кто первым со времён Оскара Робертсона набрал трипл-дабл в среднем за сезон (2016-17)?",options:["Джеймс Харден","Расселл Уэстбрук","Леброн Джеймс","Крис Пол"],correct:1,d:1},
+    {q:"Какая команда задрафтовала Коби Брайанта в 1996, прежде чем обменять его в «Лейкерс»?",options:["Шарлотт Хорнетс","Сиэтл Суперсоникс","Нью-Джерси Нетс","Портленд"],correct:0,d:2},
+    {q:"Под каким общим номером драфта 2014 был выбран Никола Йокич?",options:["7-й","21-й","41-й","59-й"],correct:2,d:2},
+    {q:"Чей контракт стал первым в истории NBA, превысившим $100 млн (1997)?",options:["Шакил О’Нил","Кевин Гарнетт","Майкл Джордан","Алонзо Моурнинг"],correct:1,d:2},
+    {q:"Какому кинорежиссёру Реджи Миллер показал жест «удушения» в плей-офф 1994 против «Никс»?",options:["Мартин Скорсезе","Спайк Ли","Вуди Аллен","Квентин Тарантино"],correct:1,d:2},
+    {q:"Сколько, по легенде маркетинга Nike, NBA штрафовала за матч в «запрещённых» кроссовках Джордана?",options:["$1 000","$5 000","$10 000","$25 000"],correct:1,d:2}
   ];
 
-  const TOTAL = questions.length;
+  const ROUNDS = 8;
+  const XP = {0:10, 1:20, 2:35};
+  const TIER_NAMES = ["НОВИЧОК","ПРОФИ","ЗАЛ СЛАВЫ"];
   const KEYS = ["A","B","C","D"];
 
-  let current = 0;
-  let score = 0;
-  let locked = false;
+  const POOLS = {0:[],1:[],2:[]};
+  questions.forEach((q,i)=>POOLS[q.d].push(i));
 
-  // ---- DOM ----
-  const screens = { start:el('start'), game:el('game'), result:el('result') };
-  const scoreboard = el('scoreboard');
-  const sbScore = el('sbScore'), sbQ = el('sbQ');
-  const progress = el('progress');
-  const qmeta = el('qmeta'), questionText = el('questionText'), answersBox = el('answers');
+  let round, score, xpTotal, tier, consec, locked, used, currentDiff, currentQ;
 
-  function el(id){ return document.getElementById(id); }
-
+  const screens = {start:el('start'), game:el('game'), result:el('result')};
+  function el(id){return document.getElementById(id);}
   function show(name){
-    Object.values(screens).forEach(s => s.classList.remove('active'));
+    Object.values(screens).forEach(s=>s.classList.remove('active'));
     screens[name].classList.add('active');
-    scoreboard.style.display = (name === 'start') ? 'none' : 'flex';
+    el('scoreboard').style.display = (name==='start')?'none':'flex';
   }
 
-  function pad(n){ return String(n).padStart(2,'0'); }
-
-  function updateBoard(){
-    sbScore.textContent = pad(score);
-    sbQ.innerHTML = (current+1) + '<span style="color:var(--muted);text-shadow:none;">/'+TOTAL+'</span>';
+  function pickQuestion(){
+    for(let t=Math.min(tier,2); t>=0; t--){
+      const avail = POOLS[t].filter(i=>!used.has(i));
+      if(avail.length){
+        const idx = avail[Math.floor(Math.random()*avail.length)];
+        used.add(idx);
+        return {idx, diff:t};
+      }
+    }
+    return null;
   }
 
   function buildProgress(){
-    progress.innerHTML = '';
-    for (let i=0;i<TOTAL;i++){
-      const pip = document.createElement('div');
-      pip.className = 'pip';
-      progress.appendChild(pip);
-    }
+    el('progress').innerHTML='';
+    for(let i=0;i<ROUNDS;i++){const p=document.createElement('div');p.className='pip';el('progress').appendChild(p);}
   }
-
   function paintProgress(){
-    [...progress.children].forEach((pip,i)=>{
-      pip.className = 'pip' + (i<current?' done':i===current?' current':'');
-    });
+    [...el('progress').children].forEach((p,i)=>{p.className='pip'+(i<round?' done':i===round?' current':'');});
+  }
+  function updateBoard(){
+    el('sbScore').textContent=score;
+    el('sbXp').textContent=xpTotal;
+    el('sbQ').textContent=(round+1);
+    el('tierBadge').textContent=TIER_NAMES[tier];
   }
 
   function renderQuestion(){
-    locked = false;
-    const item = questions[current];
-    qmeta.textContent = `Вопрос ${current+1} из ${TOTAL}`;
-    questionText.textContent = item.q;
+    const pick = pickQuestion();
+    if(!pick){ finish(); return; }
+    currentQ = questions[pick.idx];
+    currentDiff = pick.diff;
+    locked=false;
+    el('qmeta').textContent=`Вопрос ${round+1} из ${ROUNDS}`;
+    el('questionText').textContent=currentQ.q;
     updateBoard();
     paintProgress();
 
-    answersBox.className = 'answers';
-    answersBox.innerHTML = '';
-    item.options.forEach((opt,i)=>{
-      const b = document.createElement('button');
-      b.className = 'answer';
-      b.innerHTML = `<span class="key">${KEYS[i]}</span><span>${opt}</span>`;
-      b.onclick = () => choose(i, b);
-      answersBox.appendChild(b);
+    const box=el('answers'); box.className='answers'; box.innerHTML='';
+    currentQ.options.forEach((opt,i)=>{
+      const b=document.createElement('button');
+      b.className='answer';
+      b.innerHTML=`<span class="key">${KEYS[i]}</span><span>${opt}</span>`;
+      b.onclick=()=>choose(i,b);
+      box.appendChild(b);
     });
   }
 
-  function choose(i, btn){
-    if (locked) return;
-    locked = true;
-    haptic('tap');
-    const correct = questions[current].correct;
-    const buttons = [...answersBox.children];
-    answersBox.classList.add('locked');
+  function showXpPop(amount){
+    const p=el('xpPop'); p.textContent='+'+amount+' XP'; p.classList.remove('show');
+    void p.offsetWidth; p.classList.add('show');
+  }
 
-    if (i === correct){
+  function choose(i,btn){
+    if(locked) return;
+    locked=true; haptic('tap');
+    const buttons=[...el('answers').children];
+    el('answers').classList.add('locked');
+
+    if(i===currentQ.correct){
       btn.classList.add('correct');
       score++;
-      haptic('ok');
+      const gained=XP[currentDiff];
+      xpTotal+=gained;
+      consec++;
+      if(consec>=3 && tier<2){ tier++; consec=0; }   // 3 верных подряд -> уровень выше
+      haptic('ok'); showXpPop(gained);
     } else {
       btn.classList.add('wrong');
-      buttons[correct].classList.add('correct');
+      buttons[currentQ.correct].classList.add('correct');
+      consec=0;
+      if(tier>0) tier--;                              // ошибка опускает уровень
       haptic('no');
     }
     updateBoard();
 
     setTimeout(()=>{
-      current++;
-      if (current < TOTAL) renderQuestion();
+      round++;
+      if(round<ROUNDS) renderQuestion();
       else finish();
-    }, 1100);
+    },1100);
   }
 
   function finish(){
     show('result');
-    el('finalScore').textContent = score;
+    el('finalScore').textContent=score;
+    el('finalXp').textContent='+'+xpTotal+' XP';
 
-    let emoji, verdict, sub;
-    const pct = score / TOTAL;
-    if (pct === 1){ emoji='🏆'; verdict='MVP сезона'; sub='Идеально. Ты знаешь лигу как Стерн знал регламент.'; }
-    else if (pct >= 0.75){ emoji='🔥'; verdict='All-Star'; sub='Сильный результат. Почти безупречно.'; }
-    else if (pct >= 0.5){ emoji='🏀'; verdict='Ротация'; sub='Неплохо, но есть куда расти. Реванш?'; }
-    else if (pct > 0){ emoji='🪑'; verdict='Скамейка'; sub='Базу знаешь, но пора подтянуть матчасть.'; }
-    else { emoji='🍿'; verdict='Зритель'; sub='Ничего, все начинали с трибун. Попробуй ещё раз.'; }
+    let emoji,verdict,sub; const pct=score/ROUNDS;
+    if(pct===1){emoji='🏆';verdict='MVP сезона';sub='Идеально. Ты знаешь лигу наизусть.';}
+    else if(pct>=0.75){emoji='🔥';verdict='All-Star';sub='Сильный результат, почти безупречно.';}
+    else if(pct>=0.5){emoji='🏀';verdict='Ротация';sub='Неплохо, но есть куда расти. Реванш?';}
+    else if(pct>0){emoji='🪑';verdict='Скамейка';sub='Базу знаешь, подтяни матчасть.';}
+    else {emoji='🍿';verdict='Зритель';sub='Все начинали с трибун. Ещё раз?';}
 
-    el('verdictEmoji').textContent = emoji;
-    el('verdict').textContent = verdict;
-    el('verdictSub').textContent = sub;
+    el('verdictEmoji').textContent=emoji;
+    el('verdict').textContent=verdict;
+    el('verdictSub').textContent=sub;
 
-    // отправляем результат боту
-    if (tg && tg.sendData){
-      tg.sendData(JSON.stringify({ score: score, total: TOTAL }));
+    if(tg && tg.sendData){
+      tg.sendData(JSON.stringify({score:score, total:ROUNDS, xp:xpTotal}));
     }
   }
 
   function startGame(){
-    current = 0; score = 0;
-    buildProgress();
-    show('game');
-    renderQuestion();
+    round=0; score=0; xpTotal=0; tier=0; consec=0; used=new Set();
+    buildProgress(); show('game'); renderQuestion();
   }
 
-  el('startBtn').onclick = startGame;
-  el('restartBtn').onclick = startGame;
+  el('startBtn').onclick=startGame;
+  el('restartBtn').onclick=startGame;
 </script>
 </body>
 </html>
