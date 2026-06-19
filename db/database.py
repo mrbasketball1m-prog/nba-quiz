@@ -56,5 +56,30 @@ def init_db():
 
             CREATE INDEX IF NOT EXISTS idx_games_time ON games(played_at);
             CREATE INDEX IF NOT EXISTS idx_games_user ON games(user_id);
+
+            -- ===== Мультиплеер (этап 4) =====
+            -- Очередь ожидающих соперника
+            CREATE TABLE IF NOT EXISTS match_queue(
+                user_id   INTEGER PRIMARY KEY,
+                username  TEXT,
+                joined_at TEXT NOT NULL
+            );
+
+            -- Сами дуэли
+            CREATE TABLE IF NOT EXISTS matches(
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                p1_id       INTEGER NOT NULL,
+                p1_name     TEXT,
+                p2_id       INTEGER,
+                p2_name     TEXT,
+                questions   TEXT NOT NULL,   -- JSON-массив вопросов (общий для обоих)
+                p1_score    INTEGER DEFAULT 0,
+                p2_score    INTEGER DEFAULT 0,
+                p1_answered INTEGER DEFAULT 0, -- сколько вопросов прошёл игрок 1
+                p2_answered INTEGER DEFAULT 0,
+                status      TEXT DEFAULT 'waiting', -- waiting / playing / finished
+                created_at  TEXT NOT NULL,
+                updated_at  TEXT NOT NULL
+            );
             """
         )

@@ -7,10 +7,11 @@
 """
 import os
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from werkzeug.serving import make_server
 
 from db.repositories import QuestionRepo
+from db.match_repo import MatchRepo
 
 flask_app = Flask(__name__)
 
@@ -32,6 +33,104 @@ def health():
 @flask_app.get("/api/questions")
 def api_questions():
     return jsonify(QuestionRepo.all_for_client())
+
+
+# ===== Мультиплеер (этап 4) =====
+
+def _public_match(m: dict, me_id: int) -> dict:
+    """Готовит состояние матча для конкретного игрока: кто из них «я», кто «соперник».
+    Вопросы НЕ отдаём целиком на каждый poll — только их количество и тек. индекс «меня».
+    """
+    if m is None or m.get("id") is None:
+        return {"status": m.get("status", "waiting") if m else "waiting", "match_id": None}
+
+    i_am_p1 = (m["p1_id"] == me_id)
+    me = {
+        "score": m["p1_score"] if i_am_p1 else m["p2_score"],
+        "answered": m["p1_answered"] if i_am_p1 else m["p2_answered"],
+        "name": m["p1_name"] if i_am_p1 else m["p2_name"],
+    }
+    opp = {
+        "score": m["p2_score"] if i_am_p1 else m["p1_score"],
+        "answered": m["p2_answered"] if i_am_p1 else m["p1_answered"],
+        "name": m["p2_name"] if i_am_p1 else m["p1_name"],
+    }
+    return {
+        "status": m["status"],
+        "match_id": m["id"],
+        "total": len(m["questions"]),
+        "me": me,
+        "opponent": opp,
+    }
+
+
+@flask_app.post("/api/match/find")
+def api_match_find():
+    """Поиск соперника. Тело: {user_id, username}.
+    Ответ: матч (со status playing) или {status:'waiting'} + при playing — вопросы.
+    """
+    data = request.get_json(silent=True) or {}
+    try:
+        user_id = int(data["user_id"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({"error": "bad user_id"}), 400
+    username = str(data.get("username") or "player")
+
+    m = MatchRepo.find_or_create_match(user_id, username)
+    resp = _public_match(m, user_id)
+    # вопросы отдаём один раз при старте матча (фронт их запомнит)
+    if resp.get("match_id"):
+        resp["questions"] = m["questions"]
+    return jsonify(resp)
+
+
+@flask_app.get("/api/match/state")
+def api_match_state():
+    """Статус матча для поллинга. Параметры: ?match_id=&user_id="""
+    try:
+        match_id = int(request.args["match_id"])
+        user_id = int(request.args["user_id"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({"error": "bad params"}), 400
+
+    m = MatchRepo.get(match_id)
+    if m is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(_public_match(m, user_id))
+
+
+@flask_app.post("/api/match/answer")
+def api_match_answer():
+    """Ответ на вопрос. Тело: {match_id, user_id, q_index, correct(bool), seconds_left}."""
+    data = request.get_json(silent=True) or {}
+    try:
+        match_id = int(data["match_id"])
+        user_id = int(data["user_id"])
+        q_index = int(data["q_index"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({"error": "bad params"}), 400
+    is_correct = bool(data.get("correct"))
+    try:
+        seconds_left = float(data.get("seconds_left", 0))
+    except (ValueError, TypeError):
+        seconds_left = 0.0
+
+    m = MatchRepo.submit_answer(match_id, user_id, q_index, is_correct, seconds_left)
+    if m is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(_public_match(m, user_id))
+
+
+@flask_app.post("/api/match/cancel")
+def api_match_cancel():
+    """Выйти из очереди (если передумал искать). Тело: {user_id}."""
+    data = request.get_json(silent=True) or {}
+    try:
+        user_id = int(data["user_id"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({"error": "bad user_id"}), 400
+    MatchRepo.leave_queue(user_id)
+    return jsonify({"status": "left"})
 
 
 def run_api():
