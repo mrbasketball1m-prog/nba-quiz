@@ -102,7 +102,7 @@ class LeaderboardRepo:
 
 
 class QuestionRepo:
-    """Фундамент под этап 2. Методы готовы, но к фронту пока не подключены."""
+    """Вопросы квиза. Источник правды для фронта (через API) и сидов."""
 
     @staticmethod
     def count() -> int:
@@ -118,16 +118,18 @@ class QuestionRepo:
             )
 
     @staticmethod
-    def all():
+    def all_for_client():
+        """Отдаёт вопросы в формате, который ждёт фронт: {q, options, correct, d}."""
         with get_conn() as conn:
-            rows = conn.execute("SELECT * FROM questions ORDER BY id").fetchall()
+            rows = conn.execute(
+                "SELECT text, options, correct, difficulty FROM questions ORDER BY id"
+            ).fetchall()
         return [
             {
-                "id": r["id"],
-                "text": r["text"],
+                "q": r["text"],
                 "options": json.loads(r["options"]),
                 "correct": r["correct"],
-                "difficulty": r["difficulty"],
+                "d": r["difficulty"],
             }
             for r in rows
         ]
