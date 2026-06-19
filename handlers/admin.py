@@ -1,10 +1,11 @@
-"""Админские команды: добавление вопросов прямо из Telegram, без редеплоя.
+"""Админские команды: добавление вопросов и ручной запуск рассылок.
 Доступ только для ID из ADMIN_IDS (config.py / переменная окружения)."""
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import ADMIN_IDS
 from db.repositories import QuestionRepo
+from services.scheduler import broadcast_daily_question, broadcast_weekly_summary
 
 FORMAT = (
     "📝 Добавление вопроса:\n\n"
@@ -25,7 +26,6 @@ async def addq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⛔ Команда только для админа.")
         return
 
-    # всё, что идёт после "/addq"
     raw = update.message.text.partition(" ")[2].strip()
     if not raw:
         await update.message.reply_text(FORMAT)
@@ -66,3 +66,21 @@ async def qcount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⛔ Команда только для админа.")
         return
     await update.message.reply_text(f"📊 Вопросов в базе: {QuestionRepo.count()}")
+
+
+async def sendtoday(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Ручной запуск «вопроса дня» — для теста, не дожидаясь расписания."""
+    if not _is_admin(update.effective_user.id):
+        await update.message.reply_text("⛔ Команда только для админа.")
+        return
+    n = await broadcast_daily_question(context.bot)
+    await update.message.reply_text(f"📤 Вопрос дня отправлен игрокам: {n}")
+
+
+async def sendweekly(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Ручной запуск «итогов недели» — для теста."""
+    if not _is_admin(update.effective_user.id):
+        await update.message.reply_text("⛔ Команда только для админа.")
+        return
+    n = await broadcast_weekly_summary(context.bot)
+    await update.message.reply_text(f"📤 Итоги недели отправлены игрокам: {n}")

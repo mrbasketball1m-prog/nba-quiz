@@ -47,6 +47,13 @@ class UserRepo:
             ).fetchone()
 
     @staticmethod
+    def all_ids():
+        """ID всех, кто хоть раз играл — для рассылки."""
+        with get_conn() as conn:
+            rows = conn.execute("SELECT user_id FROM users").fetchall()
+        return [r["user_id"] for r in rows]
+
+    @staticmethod
     def apply_game(user_id: int, username: str, xp: int):
         """Начисляет XP и пересчитывает серию дней. Возвращает (total_xp, streak)."""
         today = date.today().isoformat()
@@ -116,6 +123,17 @@ class QuestionRepo:
                 "INSERT INTO questions(text, options, correct, difficulty) VALUES(?,?,?,?)",
                 (text, json.dumps(options, ensure_ascii=False), correct, difficulty),
             )
+
+    @staticmethod
+    def random_one():
+        """Один случайный вопрос — для «вопроса дня»."""
+        with get_conn() as conn:
+            r = conn.execute(
+                "SELECT text, options, correct FROM questions ORDER BY RANDOM() LIMIT 1"
+            ).fetchone()
+        if r is None:
+            return None
+        return {"q": r["text"], "options": json.loads(r["options"]), "correct": r["correct"]}
 
     @staticmethod
     def all_for_client():
