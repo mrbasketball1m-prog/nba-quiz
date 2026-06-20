@@ -19,10 +19,17 @@ flask_app = Flask(__name__)
 @flask_app.after_request
 def _add_cors(resp):
     # Фронт живёт на github.io, API — на railway.app: это разные домены (CORS).
-    # Без этих заголовков браузер не даст фронту прочитать ответ.
+    # Для POST с JSON браузер шлёт preflight и требует разрешить заголовок Content-Type.
     resp.headers["Access-Control-Allow-Origin"] = "*"
-    resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return resp
+
+
+@flask_app.route("/api/<path:_any>", methods=["OPTIONS"])
+def _cors_preflight(_any):
+    # Ответ на preflight-запрос браузера (заголовки добавит _add_cors выше).
+    return ("", 204)
 
 
 @flask_app.get("/health")
