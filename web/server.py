@@ -66,6 +66,8 @@ def _public_match(m: dict, me_id: int) -> dict:
         "status": m["status"],
         "match_id": m["id"],
         "total": len(m["questions"]),
+        "ended_early": (m["status"] == "finished" and
+                        (m["p1_answered"] < len(m["questions"]) or m["p2_answered"] < len(m["questions"]))),
         "me": me,
         "opponent": opp,
     }
@@ -100,7 +102,7 @@ def api_match_state():
     except (KeyError, ValueError, TypeError):
         return jsonify({"error": "bad params"}), 400
 
-    m = MatchRepo.get(match_id)
+    m = MatchRepo.check_timeout(match_id)
     if m is None:
         return jsonify({"error": "not found"}), 404
     return jsonify(_public_match(m, user_id))
@@ -138,6 +140,21 @@ def api_match_cancel():
         return jsonify({"error": "bad user_id"}), 400
     MatchRepo.leave_queue(user_id)
     return jsonify({"status": "left"})
+
+
+@flask_app.post("/api/match/leave")
+def api_match_leave():
+    """Выйти из идущего матча. Тело: {match_id, user_id}. Матч завершается."""
+    data = request.get_json(silent=True) or {}
+    try:
+        match_id = int(data["match_id"])
+        user_id = int(data["user_id"])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({"error": "bad params"}), 400
+    m = MatchRepo.leave_match(match_id, user_id)
+    if m is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(_public_match(m, user_id))
 
 
 def run_api():

@@ -9,8 +9,9 @@
 """
 import json
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from config import MATCH_TIMEOUT_SEC
 from db.database import get_conn
 from db.repositories import QuestionRepo
 
@@ -19,6 +20,10 @@ MATCH_QUESTIONS = 10  # вопросов в дуэли
 
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
+
+
+def _parse(ts: str) -> datetime:
+    return datetime.fromisoformat(ts)
 
 
 def _pick_questions(n: int = MATCH_QUESTIONS):
@@ -69,7 +74,11 @@ class MatchRepo:
     @staticmethod
     def find_or_create_match(user_id: int, username: str) -> dict:
         now = _now()
+        stale_before = (datetime.now() - timedelta(seconds=MATCH_TIMEOUT_SEC)).isoformat(timespec="seconds")
         with get_conn() as conn:
+            # чистим протухшие записи очереди (кто-то закрыл поиск и ушёл)
+            conn.execute("DELETE FROM match_queue WHERE joined_at < ? AND user_id != ?", (stale_before, user_id))
+
             # 0) уже в матче? вернём его (защита от двойного поиска)
             existing = conn.execute(
                 "SELECT * FROM matches WHERE status!='finished' AND (p1_id=? OR p2_id=?) "
@@ -163,4 +172,39 @@ class MatchRepo:
             )
             row = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
 
+        return _row_to_match(row)
+
+    @staticmethod
+    def leave_match(match_id: int, user_id: int) -> dict:
+        """Игрок явно вышел из матча → матч завершается немедленно.
+        Победитель определится по текущему счёту (вышедший обычно отстаёт)."""
+        now = _now()
+        with get_conn() as conn:
+            row = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
+            if row is None:
+                return None
+            if row["status"] != "finished":
+                conn.execute(
+                    "UPDATE matches SET status='finished', updated_at=? WHERE id=?",
+                    (now, match_id),
+                )
+                row = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
+        return _row_to_match(row)
+
+    @staticmethod
+    def check_timeout(match_id: int) -> dict:
+        """Если матч завис (нет обновлений дольше MATCH_TIMEOUT_SEC) — завершаем его.
+        Вызывается при опросе статуса, чтобы второй игрок не ждал вечно."""
+        with get_conn() as conn:
+            row = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
+            if row is None:
+                return None
+            if row["status"] != "finished":
+                idle = (datetime.now() - _parse(row["updated_at"])).total_seconds()
+                if idle > MATCH_TIMEOUT_SEC:
+                    conn.execute(
+                        "UPDATE matches SET status='finished', updated_at=? WHERE id=?",
+                        (_now(), match_id),
+                    )
+                    row = conn.execute("SELECT * FROM matches WHERE id=?", (match_id,)).fetchone()
         return _row_to_match(row)

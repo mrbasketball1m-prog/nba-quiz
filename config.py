@@ -31,3 +31,6 @@ WEEKLY_SUMMARY_WEEKDAY = int(os.environ.get("WEEKLY_SUMMARY_WEEKDAY", "6"))  # 6
 
 # Пауза между сообщениями при рассылке (троттлинг под лимиты Telegram ~30/сек)
 BROADCAST_DELAY = float(os.environ.get("BROADCAST_DELAY", "0.05"))
+
+# Мультиплеер: через сколько секунд тишины считаем игрока отвалившимся
+MATCH_TIMEOUT_SEC = int(os.environ.get("MATCH_TIMEOUT_SEC", "45"))
